@@ -2,12 +2,16 @@ package com.thehecklers.playgroundkotlwfx
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.data.annotation.Id
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.server.body
+import org.springframework.web.reactive.function.server.router
 import reactor.core.publisher.Flux
 import reactor.core.publisher.toFlux
+import java.util.*
 import javax.annotation.PostConstruct
 import kotlin.random.Random
 
@@ -54,7 +58,19 @@ class DataLoader(private val repo: ShipRepository) {
     }
 }
 
-@RestController
+@Configuration
+class RouteConfig(private val repo: ShipRepository) {
+    @Bean
+    fun router() = router {
+        listOf(
+            GET("/ships") { req -> ok().body(repo.findAll()) },
+            GET("/ships/{id}") { req -> ok().body(repo.findById(req.pathVariable("id"))) },
+            GET("/search") { req -> ok().body(repo.findShipByCaptain(req.queryParam("captain"))) }
+        )
+    }
+}
+
+/*@RestController
 @RequestMapping("/ships")
 class ShipController(private val repo: ShipRepository) {
     @GetMapping
@@ -65,10 +81,10 @@ class ShipController(private val repo: ShipRepository) {
 
     @GetMapping("/search")
     fun getShipByCaptain(@RequestParam(defaultValue = "Martok") captain: String) = repo.findShipByCaptain(captain)
-}
+}*/
 
 interface ShipRepository : ReactiveCrudRepository<Ship, String> {
-    fun findShipByCaptain(captain: String): Flux<Ship>
+    fun findShipByCaptain(captain: Optional<String>): Flux<Ship>
 }
 
 data class Ship(@Id val id: String? = null, val name: String, val captain: String)
