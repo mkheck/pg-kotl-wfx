@@ -62,11 +62,9 @@ class DataLoader(private val repo: ShipRepository) {
 class RouteConfig(private val repo: ShipRepository) {
     @Bean
     fun router() = router {
-        listOf(
-            GET("/ships") { req -> ok().body(repo.findAll()) },
-            GET("/ships/{id}") { req -> ok().body(repo.findById(req.pathVariable("id"))) },
-            GET("/search") { req -> ok().body(repo.findShipByCaptain(req.queryParam("captain"))) }
-        )
+        GET("/ships") { req -> ok().body(repo.findAll()) }
+        GET("/ships/{id}") { req -> ok().body(repo.findById(req.pathVariable("id"))) }
+        GET("/search") { req -> ok().body(repo.findShipByCaptain(req.queryParam("captain"))) }
     }
 }
 
