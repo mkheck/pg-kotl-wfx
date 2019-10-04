@@ -1,5 +1,9 @@
 package com.thehecklers.playgroundkotlwfx
 
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -7,10 +11,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.annotation.Id
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.server.ServerRequest
+import org.springframework.web.reactive.function.server.ServerResponse.ok
 import org.springframework.web.reactive.function.server.body
+import org.springframework.web.reactive.function.server.coRouter
 import org.springframework.web.reactive.function.server.router
 import reactor.core.publisher.Flux
 import reactor.core.publisher.toFlux
+import java.time.Duration
 import java.util.*
 import javax.annotation.PostConstruct
 import kotlin.random.Random
@@ -59,6 +68,40 @@ class DataLoader(private val repo: ShipRepository) {
 }
 
 @Configuration
+class CoRouterConfig(private val repo: ShipRepository) {
+    @Bean
+    fun crouter() = coRouter {
+        GET("/ships", ::getAllShips)
+        GET("/ships/{id}", ::getShipById)
+        GET("/search", ::getShipByCaptain)
+    }
+
+    suspend fun getAllShips(req: ServerRequest) = ok().body(repo.findAll()).awaitSingle()
+
+    suspend fun getShipById(req: ServerRequest) = ok()
+        .body(repo.findById(req.pathVariable("id"))).awaitSingle()
+
+    suspend fun getShipByCaptain(req: ServerRequest) = ok()
+        .body(repo.findShipByCaptain(req.queryParam("captain"))).awaitSingle()
+}
+
+/*
+@RestController
+@RequestMapping("/ships")
+class ShipController(private val repo: ShipRepository) {
+    @GetMapping
+    suspend fun getAllShips() = repo.findAll().asFlow()
+
+    @GetMapping("/{id}")
+    suspend fun getShipById(@PathVariable id: String) = repo.findById(id).asFlow()
+
+    @GetMapping("/search")
+    suspend fun getShipByCaptain(@RequestParam(defaultValue = "Martok") captain: String) = repo.findShipByCaptain(captain).asFlow()
+}
+*/
+
+/*
+@Configuration
 class RouteConfig(private val repo: ShipRepository) {
     @Bean
     fun router() = router {
@@ -67,6 +110,7 @@ class RouteConfig(private val repo: ShipRepository) {
         GET("/search") { req -> ok().body(repo.findShipByCaptain(req.queryParam("captain"))) }
     }
 }
+*/
 
 /*@RestController
 @RequestMapping("/ships")
@@ -82,6 +126,7 @@ class ShipController(private val repo: ShipRepository) {
 }*/
 
 interface ShipRepository : ReactiveCrudRepository<Ship, String> {
+//    fun findShipByCaptain(captain: String): Flux<Ship>
     fun findShipByCaptain(captain: Optional<String>): Flux<Ship>
 }
 
