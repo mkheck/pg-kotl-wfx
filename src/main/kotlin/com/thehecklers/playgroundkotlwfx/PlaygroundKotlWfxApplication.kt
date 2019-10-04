@@ -67,7 +67,7 @@ class DataLoader(private val repo: ShipRepository) {
     }
 }
 
-@Configuration
+/*@Configuration
 class CoRouterConfig(private val repo: ShipRepository) {
     @Bean
     fun crouter() = coRouter {
@@ -83,7 +83,7 @@ class CoRouterConfig(private val repo: ShipRepository) {
 
     suspend fun getShipByCaptain(req: ServerRequest) = ok()
         .body(repo.findShipByCaptain(req.queryParam("captain"))).awaitSingle()
-}
+}*/
 
 /*
 @RestController
@@ -100,7 +100,6 @@ class ShipController(private val repo: ShipRepository) {
 }
 */
 
-/*
 @Configuration
 class RouteConfig(private val repo: ShipRepository) {
     @Bean
@@ -110,7 +109,6 @@ class RouteConfig(private val repo: ShipRepository) {
         GET("/search") { req -> ok().body(repo.findShipByCaptain(req.queryParam("captain"))) }
     }
 }
-*/
 
 /*@RestController
 @RequestMapping("/ships")
